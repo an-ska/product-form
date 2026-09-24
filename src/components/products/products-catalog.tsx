@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { ProductsCardList } from "@/components/products/products-card-list";
 import { ProductsHeader } from "@/components/products/products-header";
 import { ProductsTable } from "@/components/products/products-table";
 import { initialProducts, type Product } from "@/lib/product";
@@ -10,7 +11,6 @@ export function ProductsCatalog() {
   const [products] = useState<Product[]>(initialProducts);
 
   function handleAddProduct() {
-
   }
 
   return (
@@ -19,7 +19,12 @@ export function ProductsCatalog() {
         productCount={products.length}
         onAddProduct={handleAddProduct}
       />
-      <ProductsTable products={products} />
+      <div className="md:hidden">
+        <ProductsCardList products={products} />
+      </div>
+      <div className="hidden md:block">
+        <ProductsTable products={products} />
+      </div>
     </div>
   );
 }
