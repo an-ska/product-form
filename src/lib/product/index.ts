@@ -11,6 +11,8 @@ export {
 
 export { defaultProductFormValues } from "./defaults";
 
+export { formatCatalogCountLabel, formatStockQuantity } from "./format";
+
 export {
   createProductFromFormValues,
   pricesFromGross,
