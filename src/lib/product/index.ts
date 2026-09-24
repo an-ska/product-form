@@ -11,7 +11,7 @@ export {
 
 export { defaultProductFormValues } from "./defaults";
 
-export { formatCatalogCountLabel, formatStockQuantity } from "./format";
+export { formatCatalogCountLabel, formatPaginationSummary, formatStockQuantity } from "./format";
 
 export {
   createProductFromFormValues,
@@ -21,6 +21,12 @@ export {
 } from "./mappers";
 
 export { initialProducts } from "./mock-data";
+
+export {
+  clampPage,
+  getTotalPages,
+  paginateItems,
+} from "./pagination";
 
 export {
   calculateGrossPrice,

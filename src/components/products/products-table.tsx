@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 import { ProductStatusBadge } from "@/components/products/product-status-badge";
 import {
   Table,
@@ -15,9 +17,10 @@ import {
 
 type ProductsTableProps = {
   products: Product[];
+  footer: ReactNode;
 };
 
-export function ProductsTable({ products }: ProductsTableProps) {
+export function ProductsTable({ products, footer }: ProductsTableProps) {
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-card shadow-[0_1px_3px_rgb(0_0_0_/_0.05)]">
       <Table>
@@ -69,6 +72,7 @@ export function ProductsTable({ products }: ProductsTableProps) {
           ))}
         </TableBody>
       </Table>
+      <div className="border-t border-border px-4 py-3">{footer}</div>
     </div>
   );
 }

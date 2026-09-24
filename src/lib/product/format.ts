@@ -9,10 +9,18 @@ const productNounByPlural: Record<Intl.LDMLPluralRule, string> = {
   other: "produktów",
 };
 
-/** Polish plural for catalog subtitle, e.g. "5 produktów w katalogu". */
 export function formatCatalogCountLabel(count: number): string {
   const noun = productNounByPlural[productPluralRules.select(count)];
   return `${count} ${noun} w katalogu`;
+}
+
+export function formatPaginationSummary(
+  page: number,
+  totalPages: number,
+  totalItems: number,
+): string {
+  const noun = productNounByPlural[productPluralRules.select(totalItems)];
+  return `Strona ${page} z ${totalPages} · ${totalItems} ${noun}`;
 }
 
 export function formatStockQuantity(stockQuantity: number | null): string {
