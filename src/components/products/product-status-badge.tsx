@@ -21,7 +21,13 @@ export function ProductStatusBadge({
   return (
     <Badge
       variant={isAvailable ? "success" : "destructive"}
-      className={cn("transition-colors", className)}
+      className={cn(
+        "transition-colors",
+        isAvailable
+          ? "hover:bg-[#454545] hover:text-success"
+          : "hover:bg-destructive/20 hover:text-destructive",
+        className,
+      )}
     >
       {getProductStatusLabel(status)}
     </Badge>
