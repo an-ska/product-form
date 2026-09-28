@@ -16,7 +16,9 @@ npm install
 npm run dev
 ```
 
-Aplikacja: [http://localhost:3000](http://localhost:3000)
+Aplikacja:
+- lokalnie: [http://localhost:3000](http://localhost:3000)
+- online: [https://product-form-orpin.vercel.app/](https://product-form-orpin.vercel.app/)
 
 Inne skrypty:
 
