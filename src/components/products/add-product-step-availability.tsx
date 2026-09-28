@@ -63,7 +63,7 @@ export function AddProductStepAvailability({
   form,
 }: AddProductStepAvailabilityProps) {
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <form.Field name="isAvailable">
         {(field) => (
           <div className="flex items-center gap-3">
@@ -98,6 +98,7 @@ export function AddProductStepAvailability({
             <Checkbox
               id={field.name}
               checked={field.state.value}
+              className="data-checked:border-foreground data-checked:bg-foreground data-checked:text-background"
               onCheckedChange={(checked) =>
                 field.handleChange(checked === true)
               }
@@ -162,7 +163,7 @@ export function AddProductStepAvailability({
       <div className="border-b border-border" aria-hidden />
 
       <div className="space-y-4">
-        <h3 className="text-base font-semibold text-foreground">Limity koszyka</h3>
+        <h3 className="text-base font-medium text-foreground">Limity koszyka</h3>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <form.Field

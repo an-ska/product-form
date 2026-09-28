@@ -28,7 +28,7 @@ export function ProductsPagination({
   return (
     <div
       className={cn(
-        "flex flex-col items-center gap-3 md:flex-row md:justify-between",
+        "flex flex-col items-center gap-3 md:flex-row md:justify-between md:gap-4",
         className,
       )}
     >
@@ -63,8 +63,10 @@ export function ProductsPagination({
               variant={isActive ? "default" : "ghost"}
               aria-current={isActive ? "page" : undefined}
               className={cn(
-                "min-w-8 px-2",
-                !isActive && "text-foreground",
+                "size-8 min-w-8 px-0",
+                isActive
+                  ? "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground"
+                  : "text-foreground",
               )}
               onClick={() => onPageChange(pageNumber)}
             >

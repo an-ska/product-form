@@ -11,32 +11,31 @@ type ProductCardProps = {
 
 export function ProductCard({ product }: ProductCardProps) {
   return (
-    <article className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_3px_rgb(0_0_0_/_0.05)]">
-      <div className="flex items-start justify-between gap-3">
-        <h2 className="text-base font-semibold leading-snug text-foreground">
-          {product.name}
-        </h2>
+    <article className="flex flex-col gap-2 rounded-xl border border-border bg-card p-3">
+      <div className="flex items-center justify-between gap-2.5">
+        <div className="min-w-0 space-y-1">
+          <h2 className="truncate text-base font-medium leading-6 text-foreground">
+            {product.name}
+          </h2>
+          <p className="truncate text-xs text-muted-foreground">{product.sku}</p>
+        </div>
         <ProductStatusBadge product={product} className="shrink-0" />
       </div>
 
-      <p className="mt-1 text-sm text-muted-foreground">{product.sku}</p>
-
-      <div className="mt-4 grid grid-cols-3 gap-3 rounded-lg bg-muted px-3 py-3">
-        <div className="min-w-0">
+      <div className="grid grid-cols-3 gap-1 rounded-[9px] bg-accent p-3">
+        <div className="min-w-0 space-y-1">
           <p className="text-xs text-muted-foreground">Kategoria</p>
-          <p className="mt-0.5 truncate text-sm font-medium text-foreground">
-            {product.category}
-          </p>
+          <p className="truncate text-sm text-foreground">{product.category}</p>
         </div>
-        <div className="min-w-0">
+        <div className="min-w-0 space-y-1">
           <p className="text-xs text-muted-foreground">Cena brutto</p>
-          <p className="mt-0.5 truncate text-sm font-semibold text-foreground">
+          <p className="truncate text-sm font-medium text-foreground">
             {formatPrice(product.grossPrice, product.currency)}
           </p>
         </div>
-        <div className="min-w-0">
+        <div className="min-w-0 space-y-1">
           <p className="text-xs text-muted-foreground">Magazyn</p>
-          <p className="mt-0.5 truncate text-sm font-medium text-foreground">
+          <p className="truncate text-sm text-foreground">
             {formatStockQuantity(product.stockQuantity)}
           </p>
         </div>

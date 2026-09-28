@@ -13,9 +13,9 @@ export function ProductsHeader({
   onAddProduct,
 }: ProductsHeaderProps) {
   return (
-    <div className="mb-6 flex items-start justify-between gap-3 sm:mb-8">
+    <div className="flex items-center justify-between gap-3">
       <div className="min-w-0 space-y-1">
-        <h1 className="text-3xl font-semibold tracking-tight text-foreground">
+        <h1 className="text-xl font-semibold leading-7 text-foreground">
           Produkty
         </h1>
         <p className="text-sm text-muted-foreground">
@@ -25,8 +25,7 @@ export function ProductsHeader({
 
       <Button
         type="button"
-        size="lg"
-        className="shrink-0 rounded-full px-3 sm:px-4"
+        className="h-9 shrink-0 rounded-full px-4"
         onClick={onAddProduct}
       >
         <Plus data-icon="inline-start" />

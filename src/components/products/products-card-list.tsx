@@ -7,7 +7,7 @@ type ProductsCardListProps = {
 
 export function ProductsCardList({ products }: ProductsCardListProps) {
   return (
-    <ul className="flex flex-col gap-3">
+    <ul className="flex flex-col gap-2">
       {products.map((product) => (
         <li key={product.id}>
           <ProductCard product={product} />

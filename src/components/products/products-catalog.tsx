@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { parseAsInteger, useQueryState } from "nuqs";
 
 import { AddProductDialog } from "@/components/products/add-product-dialog";
+import { ProductCreatedToast } from "@/components/products/product-created-toast";
 import { ProductsCardList } from "@/components/products/products-card-list";
 import { ProductsHeader } from "@/components/products/products-header";
 import { ProductsPagination } from "@/components/products/products-pagination";
@@ -20,6 +21,7 @@ import {
 export function ProductsCatalog() {
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
+  const [isToastOpen, setIsToastOpen] = useState(false);
   const [page, setPage] = useQueryState(
     "page",
     parseAsInteger.withDefault(1).withOptions({ clearOnDefault: true }),
@@ -46,6 +48,7 @@ export function ProductsCatalog() {
   function handleProductCreated(product: Product) {
     setProducts((current) => [product, ...current]);
     void setPage(1);
+    setIsToastOpen(true);
   }
 
   function handlePageChange(nextPage: number) {
@@ -64,12 +67,12 @@ export function ProductsCatalog() {
   }
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col gap-6">
       <ProductsHeader
         productCount={products.length}
         onAddProduct={handleAddProduct}
       />
-      <div className="space-y-4 md:hidden">
+      <div className="space-y-6 md:hidden">
         <ProductsCardList products={pageProducts} />
         {renderPagination()}
       </div>
@@ -82,6 +85,7 @@ export function ProductsCatalog() {
         onOpenChange={setIsAddProductOpen}
         onProductCreated={handleProductCreated}
       />
+      <ProductCreatedToast open={isToastOpen} onOpenChange={setIsToastOpen} />
     </div>
   );
 }

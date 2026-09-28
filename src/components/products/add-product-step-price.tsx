@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import { getFieldErrorMessages } from "@/components/products/field-errors";
 import type { ProductFormApi } from "@/components/products/use-product-form";
 import { Input } from "@/components/ui/input";
@@ -26,6 +28,10 @@ type AddProductStepPriceProps = {
   form: ProductFormApi;
 };
 
+function formatMoneyDraft(value: number): string {
+  return value === 0 ? "" : String(value);
+}
+
 function parseMoneyInput(raw: string): number | null {
   if (raw.trim() === "") {
     return null;
@@ -35,9 +41,62 @@ function parseMoneyInput(raw: string): number | null {
   return Number.isFinite(value) ? value : null;
 }
 
+type MoneyFieldInputProps = {
+  id: string;
+  name: string;
+  value: number;
+  invalid: boolean;
+  onBlur: () => void;
+  onValueChange: (value: number) => void;
+};
+
+function MoneyFieldInput({
+  id,
+  name,
+  value,
+  invalid,
+  onBlur,
+  onValueChange,
+}: MoneyFieldInputProps) {
+  const [draft, setDraft] = useState<string | null>(null);
+  const displayValue = draft ?? formatMoneyDraft(value);
+
+  return (
+    <Input
+      id={id}
+      name={name}
+      type="text"
+      inputMode="decimal"
+      value={displayValue}
+      placeholder="0.00"
+      aria-invalid={invalid}
+      onFocus={() => {
+        setDraft(formatMoneyDraft(value));
+      }}
+      onBlur={() => {
+        setDraft(null);
+        onBlur();
+      }}
+      onChange={(event) => {
+        const raw = event.target.value;
+
+        if (raw !== "" && !/^\d*[.,]?\d*$/.test(raw)) {
+          return;
+        }
+
+        const normalized = raw.replace(",", ".");
+        setDraft(raw);
+
+        const parsed = parseMoneyInput(normalized);
+        onValueChange(parsed ?? 0);
+      }}
+    />
+  );
+}
+
 export function AddProductStepPrice({ form }: AddProductStepPriceProps) {
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-2">
         <form.Field
           name="netPrice"
@@ -51,29 +110,13 @@ export function AddProductStepPrice({ form }: AddProductStepPriceProps) {
             return (
               <div className="space-y-2">
                 <Label htmlFor={field.name}>Cena netto</Label>
-                <Input
+                <MoneyFieldInput
                   id={field.name}
                   name={field.name}
-                  type="number"
-                  inputMode="decimal"
-                  min={0}
-                  step="0.01"
                   value={field.state.value}
-                  placeholder="0.00"
-                  aria-invalid={errors.length > 0}
+                  invalid={errors.length > 0}
                   onBlur={field.handleBlur}
-                  onChange={(event) => {
-                    const parsed = parseMoneyInput(event.target.value);
-
-                    if (parsed === null) {
-                      field.handleChange(0);
-                      form.setFieldValue(
-                        "grossPrice",
-                        pricesFromNet(0, form.getFieldValue("vatRate")).grossPrice,
-                      );
-                      return;
-                    }
-
+                  onValueChange={(parsed) => {
                     const next = pricesFromNet(
                       parsed,
                       form.getFieldValue("vatRate"),
@@ -104,29 +147,13 @@ export function AddProductStepPrice({ form }: AddProductStepPriceProps) {
             return (
               <div className="space-y-2">
                 <Label htmlFor={field.name}>Cena brutto</Label>
-                <Input
+                <MoneyFieldInput
                   id={field.name}
                   name={field.name}
-                  type="number"
-                  inputMode="decimal"
-                  min={0}
-                  step="0.01"
                   value={field.state.value}
-                  placeholder="0.00"
-                  aria-invalid={errors.length > 0}
+                  invalid={errors.length > 0}
                   onBlur={field.handleBlur}
-                  onChange={(event) => {
-                    const parsed = parseMoneyInput(event.target.value);
-
-                    if (parsed === null) {
-                      field.handleChange(0);
-                      form.setFieldValue(
-                        "netPrice",
-                        pricesFromGross(0, form.getFieldValue("vatRate")).netPrice,
-                      );
-                      return;
-                    }
-
+                  onValueChange={(parsed) => {
                     const next = pricesFromGross(
                       parsed,
                       form.getFieldValue("vatRate"),

@@ -94,12 +94,25 @@ export function AddProductDialog({
   }
 
   async function validateStepFields(
-    fieldNames: ReadonlyArray<(typeof STEP1_FIELDS)[number] | (typeof STEP2_FIELDS)[number] | (typeof STEP3_FIELDS)[number]>,
+    fieldNames: ReadonlyArray<
+      | (typeof STEP1_FIELDS)[number]
+      | (typeof STEP2_FIELDS)[number]
+      | (typeof STEP3_FIELDS)[number]
+    >,
   ) {
     bumpSubmissionAttempts();
 
+    for (const fieldName of fieldNames) {
+      form.setFieldMeta(fieldName, (prev) => ({
+        ...prev,
+        isTouched: true,
+      }));
+    }
+
     await Promise.all(
-      fieldNames.map((fieldName) => form.validateField(fieldName, "submit")),
+      fieldNames.map((fieldName) =>
+        Promise.resolve().then(() => form.validateField(fieldName, "submit")),
+      ),
     );
 
     return fieldNames.some((fieldName) => {
@@ -152,38 +165,43 @@ export function AddProductDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
         showCloseButton
-        className="flex max-h-[min(90vh,720px)] w-full max-w-[calc(100%-2rem)] flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl"
+        className="flex h-dvh max-h-dvh w-full max-w-none flex-col gap-0 overflow-hidden rounded-none p-0 sm:h-auto sm:max-h-[min(90vh,720px)] sm:max-w-[720px] sm:rounded-xl"
       >
-        <DialogHeader className="px-6 py-4 pr-12 text-left">
-          <DialogTitle className="text-lg font-medium">
+        <DialogHeader className="gap-0 px-4 py-6 text-left sm:pr-12">
+          <DialogTitle className="text-base font-medium leading-none">
             Dodaj nowy produkt
           </DialogTitle>
           <DialogDescription className="sr-only">
             Wieloetapowy formularz dodawania produktu do katalogu.
           </DialogDescription>
         </DialogHeader>
-        <div className="mx-6 border-b border-border sm:mx-0" aria-hidden />
+        <div
+          className="mx-4 border-b border-border sm:mx-0"
+          aria-hidden
+        />
 
-        <div className="flex-1 overflow-y-auto px-6 py-5">
+        <div className="px-4 py-3">
           <AddProductStepper currentStep={step} />
-          <div className="mt-6 border-b border-border sm:-mx-6" aria-hidden />
+        </div>
+        <div
+          className="mx-4 border-b border-border sm:mx-0"
+          aria-hidden
+        />
 
-          <div className="mt-6 min-h-40">
-            {step === 1 ? <AddProductStepInfo form={form} /> : null}
-            {step === 2 ? <AddProductStepPrice form={form} /> : null}
-            {step === 3 ? <AddProductStepAvailability form={form} /> : null}
-          </div>
+        <div className="flex-1 overflow-y-auto px-4 py-5">
+          {step === 1 ? <AddProductStepInfo form={form} /> : null}
+          {step === 2 ? <AddProductStepPrice form={form} /> : null}
+          {step === 3 ? <AddProductStepAvailability form={form} /> : null}
         </div>
 
-        <DialogFooter className="mx-0 mb-0 flex-row justify-between rounded-none border-border bg-background px-6 py-4 sm:justify-between">
+        <DialogFooter className="mx-0 mb-0 flex-row justify-between gap-2 rounded-none border-border bg-accent px-4 py-4 sm:justify-between">
           {isFirstStep ? (
             <span />
           ) : (
             <Button
               type="button"
               variant="outline"
-              size="lg"
-              className="rounded-full px-4"
+              className="h-9 rounded-full px-4"
               onClick={handleBack}
             >
               <ArrowLeft data-icon="inline-start" />
@@ -194,8 +212,7 @@ export function AddProductDialog({
           {isLastStep ? (
             <Button
               type="button"
-              size="lg"
-              className="rounded-full px-4"
+              className="h-9 rounded-full px-4"
               onClick={() => {
                 void handleSave();
               }}
@@ -205,8 +222,7 @@ export function AddProductDialog({
           ) : (
             <Button
               type="button"
-              size="lg"
-              className="rounded-full px-4"
+              className="h-9 rounded-full px-4"
               onClick={() => {
                 void handleNext();
               }}

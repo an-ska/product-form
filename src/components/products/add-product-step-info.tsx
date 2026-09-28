@@ -2,7 +2,6 @@
 
 import { getFieldErrorMessages } from "@/components/products/field-errors";
 import type { ProductFormApi } from "@/components/products/use-product-form";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -29,7 +28,7 @@ type AddProductStepInfoProps = {
 
 export function AddProductStepInfo({ form }: AddProductStepInfoProps) {
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-2">
         <form.Field
           name="name"
@@ -111,7 +110,7 @@ export function AddProductStepInfo({ form }: AddProductStepInfoProps) {
                 name={field.name}
                 value={field.state.value}
                 placeholder="Krótki opis produktu"
-                className="min-h-24"
+                className="min-h-16"
                 aria-invalid={errors.length > 0}
                 onBlur={field.handleBlur}
                 onChange={(event) => field.handleChange(event.target.value)}
@@ -140,7 +139,7 @@ export function AddProductStepInfo({ form }: AddProductStepInfoProps) {
               <div className="space-y-2">
                 <Label htmlFor={field.name}>Producent</Label>
                 <Select
-                  value={field.state.value || undefined}
+                  value={field.state.value}
                   onValueChange={(value) =>
                     field.handleChange(value as ProductFormValues["producer"])
                   }
@@ -183,7 +182,7 @@ export function AddProductStepInfo({ form }: AddProductStepInfoProps) {
               <div className="space-y-2">
                 <Label htmlFor={field.name}>Kategoria</Label>
                 <Select
-                  value={field.state.value || undefined}
+                  value={field.state.value}
                   onValueChange={(value) =>
                     field.handleChange(value as ProductFormValues["category"])
                   }
@@ -241,17 +240,20 @@ export function AddProductStepInfo({ form }: AddProductStepInfoProps) {
                   const isSelected = selectedFeatures.includes(feature);
 
                   return (
-                    <Button
+                    <button
                       key={feature}
                       type="button"
-                      size="sm"
-                      variant={isSelected ? "default" : "outline"}
-                      className={cn("rounded-full", !isSelected && "bg-background")}
                       aria-pressed={isSelected}
+                      className={cn(
+                        "inline-flex h-7 items-center rounded-4xl border px-3 text-sm font-medium transition-colors",
+                        isSelected
+                          ? "border-transparent bg-primary text-primary-foreground"
+                          : "border-border bg-background text-muted-foreground",
+                      )}
                       onClick={() => toggleFeature(feature)}
                     >
                       {feature}
-                    </Button>
+                    </button>
                   );
                 })}
               </div>
