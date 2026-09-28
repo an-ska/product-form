@@ -3,7 +3,9 @@
 import { useState } from "react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 
+import { AddProductStepInfo } from "@/components/products/add-product-step-info";
 import { AddProductStepper } from "@/components/products/add-product-stepper";
+import { useProductForm } from "@/components/products/use-product-form";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -15,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import {
   PRODUCT_FORM_STEP_COUNT,
+  productStep1Schema,
   type ProductFormStepId,
 } from "@/lib/product";
 
@@ -23,14 +26,25 @@ type AddProductDialogProps = {
   onOpenChange: (open: boolean) => void;
 };
 
+const STEP1_FIELDS = [
+  "name",
+  "sku",
+  "description",
+  "producer",
+  "category",
+  "features",
+] as const satisfies ReadonlyArray<keyof typeof productStep1Schema.shape>;
+
 export function AddProductDialog({
   open,
   onOpenChange,
 }: AddProductDialogProps) {
   const [step, setStep] = useState<ProductFormStepId>(1);
+  const form = useProductForm();
 
   function resetDialogState() {
     setStep(1);
+    form.reset();
   }
 
   function handleOpenChange(nextOpen: boolean) {
@@ -42,10 +56,27 @@ export function AddProductDialog({
   }
 
   function handleBack() {
-    setStep((current) => (current > 1 ? ((current - 1) as ProductFormStepId) : current));
+    setStep((current) =>
+      current > 1 ? ((current - 1) as ProductFormStepId) : current,
+    );
   }
 
-  function handleNext() {
+  async function handleNext() {
+    if (step === 1) {
+      await Promise.all(
+        STEP1_FIELDS.map((fieldName) => form.validateField(fieldName, "submit")),
+      );
+
+      const hasStepErrors = STEP1_FIELDS.some((fieldName) => {
+        const fieldMeta = form.getFieldMeta(fieldName);
+        return Boolean(fieldMeta?.errors.length);
+      });
+
+      if (hasStepErrors) {
+        return;
+      }
+    }
+
     setStep((current) =>
       current < PRODUCT_FORM_STEP_COUNT
         ? ((current + 1) as ProductFormStepId)
@@ -79,6 +110,7 @@ export function AddProductDialog({
           <AddProductStepper currentStep={step} />
 
           <div className="mt-8 min-h-40">
+            {step === 1 ? <AddProductStepInfo form={form} /> : null}
           </div>
         </div>
 
@@ -109,7 +141,9 @@ export function AddProductDialog({
             <Button
               type="button"
               className="rounded-full"
-              onClick={handleNext}
+              onClick={() => {
+                void handleNext();
+              }}
             >
               Dalej
               <ArrowRight data-icon="inline-end" />
