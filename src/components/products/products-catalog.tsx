@@ -18,7 +18,7 @@ import {
 } from "@/lib/product";
 
 export function ProductsCatalog() {
-  const [products] = useState<Product[]>(initialProducts);
+  const [products, setProducts] = useState<Product[]>(initialProducts);
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
   const [page, setPage] = useQueryState(
     "page",
@@ -41,6 +41,11 @@ export function ProductsCatalog() {
 
   function handleAddProduct() {
     setIsAddProductOpen(true);
+  }
+
+  function handleProductCreated(product: Product) {
+    setProducts((current) => [product, ...current]);
+    void setPage(1);
   }
 
   function handlePageChange(nextPage: number) {
@@ -75,6 +80,7 @@ export function ProductsCatalog() {
       <AddProductDialog
         open={isAddProductOpen}
         onOpenChange={setIsAddProductOpen}
+        onProductCreated={handleProductCreated}
       />
     </div>
   );

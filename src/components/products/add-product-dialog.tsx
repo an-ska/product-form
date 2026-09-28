@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 
+import { AddProductStepAvailability } from "@/components/products/add-product-step-availability";
 import { AddProductStepInfo } from "@/components/products/add-product-step-info";
 import { AddProductStepPrice } from "@/components/products/add-product-step-price";
 import { AddProductStepper } from "@/components/products/add-product-stepper";
@@ -18,14 +19,18 @@ import {
 } from "@/components/ui/dialog";
 import {
   PRODUCT_FORM_STEP_COUNT,
+  createProductFromFormValues,
+  productFormSchema,
   productStep1Schema,
   productStep2Schema,
+  type Product,
   type ProductFormStepId,
 } from "@/lib/product";
 
 type AddProductDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onProductCreated: (product: Product) => void;
 };
 
 const STEP1_FIELDS = [
@@ -44,9 +49,18 @@ const STEP2_FIELDS = [
   "currency",
 ] as const satisfies ReadonlyArray<keyof typeof productStep2Schema.shape>;
 
+const STEP3_FIELDS = [
+  "isAvailable",
+  "isLimited",
+  "stockQuantity",
+  "minCartQuantity",
+  "maxCartQuantity",
+] as const;
+
 export function AddProductDialog({
   open,
   onOpenChange,
+  onProductCreated,
 }: AddProductDialogProps) {
   const [step, setStep] = useState<ProductFormStepId>(1);
   const form = useProductForm();
@@ -70,18 +84,19 @@ export function AddProductDialog({
     );
   }
 
-  async function validateStepFields(
-    fieldNames: ReadonlyArray<
-      (typeof STEP1_FIELDS)[number] | (typeof STEP2_FIELDS)[number]
-    >,
-  ) {
-    
+  function bumpSubmissionAttempts() {
     if (form.state.submissionAttempts === 0) {
       form.baseStore.setState((prev) => ({
         ...prev,
         submissionAttempts: 1,
       }));
     }
+  }
+
+  async function validateStepFields(
+    fieldNames: ReadonlyArray<(typeof STEP1_FIELDS)[number] | (typeof STEP2_FIELDS)[number] | (typeof STEP3_FIELDS)[number]>,
+  ) {
+    bumpSubmissionAttempts();
 
     await Promise.all(
       fieldNames.map((fieldName) => form.validateField(fieldName, "submit")),
@@ -115,7 +130,18 @@ export function AddProductDialog({
     );
   }
 
-  function handleSave() {
+  async function handleSave() {
+    const hasStepErrors = await validateStepFields(STEP3_FIELDS);
+    if (hasStepErrors) {
+      return;
+    }
+
+    const parsed = productFormSchema.safeParse(form.state.values);
+    if (!parsed.success) {
+      return;
+    }
+
+    onProductCreated(createProductFromFormValues(parsed.data));
     handleOpenChange(false);
   }
 
@@ -145,6 +171,7 @@ export function AddProductDialog({
           <div className="mt-6 min-h-40">
             {step === 1 ? <AddProductStepInfo form={form} /> : null}
             {step === 2 ? <AddProductStepPrice form={form} /> : null}
+            {step === 3 ? <AddProductStepAvailability form={form} /> : null}
           </div>
         </div>
 
@@ -156,7 +183,7 @@ export function AddProductDialog({
               type="button"
               variant="outline"
               size="lg"
-              className="px-4"
+              className="rounded-full px-4"
               onClick={handleBack}
             >
               <ArrowLeft data-icon="inline-start" />
@@ -169,7 +196,9 @@ export function AddProductDialog({
               type="button"
               size="lg"
               className="rounded-full px-4"
-              onClick={handleSave}
+              onClick={() => {
+                void handleSave();
+              }}
             >
               Zapisz produkt
             </Button>
