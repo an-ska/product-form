@@ -15,6 +15,10 @@ export function calculateNetPrice(grossPrice: number, vatRate: number): number {
   return roundMoney(grossPrice / (1 + vatRate / 100));
 }
 
+export function formatMoneyInputValue(amount: number): string {
+  return roundMoney(amount).toFixed(2).replace(".", ",");
+}
+
 export function formatPrice(amount: number, currency: string): string {
   const formatted = new Intl.NumberFormat("pl-PL", {
     minimumFractionDigits: 2,

@@ -169,14 +169,16 @@ export function AddProductStepAvailability({
                     inputMode="numeric"
                     min={1}
                     step={1}
-                    value={field.state.value > 0 ? field.state.value : ""}
+                    value={field.state.value}
                     autoComplete="off"
                     aria-invalid={invalid}
                     aria-describedby={describedBy}
                     onBlur={field.handleBlur}
                     onChange={(event) => {
                       const parsed = parseIntegerInput(event.target.value);
-                      field.handleChange(parsed ?? 0);
+                      if (parsed !== null) {
+                        field.handleChange(parsed);
+                      }
                     }}
                   />
                 )}
@@ -214,14 +216,16 @@ export function AddProductStepAvailability({
                     inputMode="numeric"
                     min={1}
                     step={1}
-                    value={field.state.value > 0 ? field.state.value : ""}
+                    value={field.state.value}
                     autoComplete="off"
                     aria-invalid={invalid}
                     aria-describedby={describedBy}
                     onBlur={field.handleBlur}
                     onChange={(event) => {
                       const parsed = parseIntegerInput(event.target.value);
-                      field.handleChange(parsed ?? 0);
+                      if (parsed !== null) {
+                        field.handleChange(parsed);
+                      }
                     }}
                   />
                 )}

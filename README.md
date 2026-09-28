@@ -24,6 +24,7 @@ Inne skrypty:
 npm run build   # produkcyjny build
 npm run start   # serwer po buildzie
 npm run lint
+npm test 
 ```
 
 ---
@@ -51,3 +52,7 @@ Zasada: trzymam się Figmy wszędzie, gdzie stany są jednoznaczne; przy drobnyc
 | Limity koszyka (min / max) | Brief wymaga liczb całkowitych i relacji min ≤ max, bez domyślnych wartości; w Figmie widać `1` i `10` | Domyślnie **min `1`**, **max `10`** (jak w designie); walidacja ≥ 1 oraz min ≤ max |
 
 Zasada: gdy brief lub design nie domyka reguły, wybieram wariant zgodny z kontekstem „dodaj produkt” i z tym, co recenzent uzna za przewidywalne zachowanie formularza.
+
+### Katalog
+
+Dodane produkty żyją w stanie klienta — po odświeżeniu strony katalog wraca do pięciu mocków.

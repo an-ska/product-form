@@ -14,7 +14,6 @@ export type Currency = (typeof CURRENCIES)[number];
 
 export type ProductStatus = "available" | "unavailable";
 
-/** Persisted / listed product shown in the catalog */
 export type Product = {
   id: string;
   name: string;
@@ -29,7 +28,6 @@ export type Product = {
   currency: Currency;
   isAvailable: boolean;
   isLimited: boolean;
-  /** Present only when the product is limited; otherwise shown as "—" */
   stockQuantity: number | null;
   minCartQuantity: number;
   maxCartQuantity: number;

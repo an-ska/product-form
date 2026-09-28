@@ -12,12 +12,14 @@ import { Input } from "@/components/ui/input";
 import {
   CURRENCIES,
   VAT_RATES,
+  formatMoneyInputValue,
   parseCurrency,
   parseVatRate,
   pricesFromGross,
   pricesFromNet,
   pricesFromVatChange,
   productStep2Schema,
+  roundMoney,
 } from "@/lib/product";
 
 const currencyOptions = toFormSelectOptions(CURRENCIES);
@@ -31,7 +33,7 @@ type AddProductStepPriceProps = {
 };
 
 function formatMoneyDraft(value: number | null): string {
-  return value === null ? "" : String(value);
+  return value === null ? "" : formatMoneyInputValue(value);
 }
 
 function parseMoneyInput(raw: string): number | null {
@@ -39,8 +41,8 @@ function parseMoneyInput(raw: string): number | null {
     return null;
   }
 
-  const value = Number(raw);
-  return Number.isFinite(value) ? value : null;
+  const value = Number(raw.replace(",", "."));
+  return Number.isFinite(value) ? roundMoney(value) : null;
 }
 
 type MoneyFieldInputProps = {
@@ -72,7 +74,7 @@ function MoneyFieldInput({
       type="text"
       inputMode="decimal"
       value={displayValue}
-      placeholder="0.00"
+      placeholder="0,00"
       autoComplete="off"
       aria-invalid={invalid}
       aria-describedby={describedBy}
@@ -90,9 +92,8 @@ function MoneyFieldInput({
           return;
         }
 
-        const normalized = raw.replace(",", ".");
         setDraft(raw);
-        onValueChange(parseMoneyInput(normalized));
+        onValueChange(parseMoneyInput(raw));
       }}
     />
   );

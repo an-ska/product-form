@@ -83,7 +83,6 @@ const positiveInt = z
   .int("Wartość musi być liczbą całkowitą")
   .min(1, "Wartość musi być większa od zera");
 
-/** Field shape for step 3 (without cross-field / conditional rules). */
 export const productStep3FieldsSchema = z.object({
   isAvailable: z.boolean(),
   isLimited: z.boolean(),
@@ -92,37 +91,6 @@ export const productStep3FieldsSchema = z.object({
   maxCartQuantity: positiveInt,
 });
 
-export const productStep3Schema = productStep3FieldsSchema.superRefine(
-  (values, ctx) => {
-    if (values.isLimited) {
-      const stockResult = nonNegativeInt.safeParse(values.stockQuantity);
-
-      if (!stockResult.success) {
-        for (const issue of stockResult.error.issues) {
-          ctx.addIssue({
-            ...issue,
-            path: ["stockQuantity"],
-          });
-        }
-      }
-    }
-
-    if (values.minCartQuantity > values.maxCartQuantity) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["minCartQuantity"],
-        message: "Minimalna ilość nie może być większa niż maksymalna",
-      });
-      ctx.addIssue({
-        code: "custom",
-        path: ["maxCartQuantity"],
-        message: "Maksymalna ilość nie może być mniejsza niż minimalna",
-      });
-    }
-  },
-);
-
-/** Field-level helper: stock is required only when the product is limited. */
 export function getStockQuantityError(
   isLimited: boolean,
   stockQuantity: number | null,
@@ -135,7 +103,20 @@ export function getStockQuantityError(
   return result.success ? undefined : result.error.issues[0]?.message;
 }
 
-/** Field-level helper: own constraints + min ≤ max. */
+function getCartQuantityOrderError(
+  field: "minCartQuantity" | "maxCartQuantity",
+  minCartQuantity: number,
+  maxCartQuantity: number,
+): string | undefined {
+  if (minCartQuantity <= maxCartQuantity) {
+    return undefined;
+  }
+
+  return field === "minCartQuantity"
+    ? "Minimalna ilość nie może być większa niż maksymalna"
+    : "Maksymalna ilość nie może być mniejsza niż minimalna";
+}
+
 export function getCartQuantityError(
   field: "minCartQuantity" | "maxCartQuantity",
   minCartQuantity: number,
@@ -149,14 +130,41 @@ export function getCartQuantityError(
     return result.error.issues[0]?.message;
   }
 
-  if (minCartQuantity > maxCartQuantity) {
-    return field === "minCartQuantity"
-      ? "Minimalna ilość nie może być większa niż maksymalna"
-      : "Maksymalna ilość nie może być mniejsza niż minimalna";
-  }
-
-  return undefined;
+  return getCartQuantityOrderError(field, minCartQuantity, maxCartQuantity);
 }
+
+export const productStep3Schema = productStep3FieldsSchema.superRefine(
+  (values, ctx) => {
+    const stockError = getStockQuantityError(
+      values.isLimited,
+      values.stockQuantity,
+    );
+
+    if (stockError) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["stockQuantity"],
+        message: stockError,
+      });
+    }
+
+    for (const field of ["minCartQuantity", "maxCartQuantity"] as const) {
+      const message = getCartQuantityOrderError(
+        field,
+        values.minCartQuantity,
+        values.maxCartQuantity,
+      );
+
+      if (message) {
+        ctx.addIssue({
+          code: "custom",
+          path: [field],
+          message,
+        });
+      }
+    }
+  },
+);
 
 export const productFormSchema = productStep1Schema
   .and(productStep2Schema)

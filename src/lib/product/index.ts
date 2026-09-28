@@ -34,6 +34,7 @@ export {
 export {
   calculateGrossPrice,
   calculateNetPrice,
+  formatMoneyInputValue,
   formatPrice,
   pricesFromGross,
   pricesFromNet,
