@@ -11,6 +11,12 @@ export {
 
 export { defaultProductFormValues } from "./defaults";
 
+export {
+  PRODUCT_FORM_STEPS,
+  PRODUCT_FORM_STEP_COUNT,
+  type ProductFormStepId,
+} from "./form-steps";
+
 export { formatCatalogCountLabel, formatPaginationSummary, formatStockQuantity } from "./format";
 
 export {

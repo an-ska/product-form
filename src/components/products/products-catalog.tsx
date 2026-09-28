@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { parseAsInteger, useQueryState } from "nuqs";
 
+import { AddProductDialog } from "@/components/products/add-product-dialog";
 import { ProductsCardList } from "@/components/products/products-card-list";
 import { ProductsHeader } from "@/components/products/products-header";
 import { ProductsPagination } from "@/components/products/products-pagination";
@@ -18,6 +19,7 @@ import {
 
 export function ProductsCatalog() {
   const [products] = useState<Product[]>(initialProducts);
+  const [isAddProductOpen, setIsAddProductOpen] = useState(false);
   const [page, setPage] = useQueryState(
     "page",
     parseAsInteger.withDefault(1).withOptions({ clearOnDefault: true }),
@@ -38,6 +40,7 @@ export function ProductsCatalog() {
   }, [page, currentPage, setPage]);
 
   function handleAddProduct() {
+    setIsAddProductOpen(true);
   }
 
   function handlePageChange(nextPage: number) {
@@ -68,6 +71,11 @@ export function ProductsCatalog() {
       <div className="hidden md:block">
         <ProductsTable products={pageProducts} footer={renderPagination()} />
       </div>
+
+      <AddProductDialog
+        open={isAddProductOpen}
+        onOpenChange={setIsAddProductOpen}
+      />
     </div>
   );
 }
