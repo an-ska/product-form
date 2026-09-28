@@ -1,5 +1,5 @@
 import { DEFAULT_CURRENCY, DEFAULT_VAT_RATE } from "./constants";
-import type { ProductFormValues } from "./types";
+import type { ProductFormValues } from "./schemas";
 
 export const defaultProductFormValues: ProductFormValues = {
   name: "",
@@ -8,8 +8,8 @@ export const defaultProductFormValues: ProductFormValues = {
   producer: "",
   category: "",
   features: [],
-  netPrice: 0,
-  grossPrice: 0,
+  netPrice: null,
+  grossPrice: null,
   vatRate: DEFAULT_VAT_RATE,
   currency: DEFAULT_CURRENCY,
   isAvailable: true,

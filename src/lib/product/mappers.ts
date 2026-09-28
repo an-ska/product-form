@@ -1,6 +1,5 @@
-import { calculateGrossPrice, calculateNetPrice } from "./pricing";
 import type { ProductFormSchemaValues } from "./schemas";
-import type { Product, VatRate } from "./types";
+import type { Product } from "./types";
 
 export function createProductFromFormValues(
   values: ProductFormSchemaValues,
@@ -23,30 +22,5 @@ export function createProductFromFormValues(
     stockQuantity: values.isLimited ? values.stockQuantity : null,
     minCartQuantity: values.minCartQuantity,
     maxCartQuantity: values.maxCartQuantity,
-  };
-}
-
-/** After editing net price: recompute gross from VAT. */
-export function pricesFromNet(netPrice: number, vatRate: number) {
-  return {
-    netPrice,
-    grossPrice: calculateGrossPrice(netPrice, vatRate),
-  };
-}
-
-/** After editing gross price: recompute net from VAT. */
-export function pricesFromGross(grossPrice: number, vatRate: number) {
-  return {
-    netPrice: calculateNetPrice(grossPrice, vatRate),
-    grossPrice,
-  };
-}
-
-/** After changing VAT: keep net, recompute gross. */
-export function pricesFromVatChange(netPrice: number, vatRate: VatRate) {
-  return {
-    netPrice,
-    grossPrice: calculateGrossPrice(netPrice, vatRate),
-    vatRate,
   };
 }

@@ -1,54 +1,20 @@
 "use client";
 
-import { getFieldErrorMessages } from "@/components/products/field-errors";
+import { FormFieldShell } from "@/components/products/field-errors";
 import type { ProductFormApi } from "@/components/products/use-product-form";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { productStep3Schema } from "@/lib/product";
+import {
+  getCartQuantityError,
+  getStockQuantityError,
+  productStep3FieldsSchema,
+} from "@/lib/product";
 
 type AddProductStepAvailabilityProps = {
   form: ProductFormApi;
 };
-
-type Step3FieldName =
-  | "isAvailable"
-  | "isLimited"
-  | "stockQuantity"
-  | "minCartQuantity"
-  | "maxCartQuantity";
-
-function getStep3Values(
-  form: ProductFormApi,
-  override?: Partial<Record<Step3FieldName, unknown>>,
-) {
-  return {
-    isAvailable: form.getFieldValue("isAvailable"),
-    isLimited: form.getFieldValue("isLimited"),
-    stockQuantity: form.getFieldValue("stockQuantity"),
-    minCartQuantity: form.getFieldValue("minCartQuantity"),
-    maxCartQuantity: form.getFieldValue("maxCartQuantity"),
-    ...override,
-  };
-}
-
-function validateStep3Field(
-  form: ProductFormApi,
-  fieldName: Step3FieldName,
-  value: unknown,
-) {
-  const result = productStep3Schema.safeParse(
-    getStep3Values(form, { [fieldName]: value }),
-  );
-
-  if (result.success) {
-    return undefined;
-  }
-
-  return result.error.issues.find((issue) => issue.path[0] === fieldName)
-    ?.message;
-}
 
 function parseIntegerInput(raw: string): number | null {
   if (raw.trim() === "") {
@@ -64,11 +30,17 @@ export function AddProductStepAvailability({
 }: AddProductStepAvailabilityProps) {
   return (
     <div className="space-y-4">
-      <form.Field name="isAvailable">
+      <form.Field
+        name="isAvailable"
+        validators={{
+          onDynamic: productStep3FieldsSchema.shape.isAvailable,
+        }}
+      >
         {(field) => (
           <div className="flex items-center gap-3">
             <Switch
               id={field.name}
+              name={field.name}
               checked={field.state.value}
               onCheckedChange={(checked) => field.handleChange(checked)}
             />
@@ -83,6 +55,9 @@ export function AddProductStepAvailability({
 
       <form.Field
         name="isLimited"
+        validators={{
+          onDynamic: productStep3FieldsSchema.shape.isLimited,
+        }}
         listeners={{
           onChange: ({ value }) => {
             if (!value) {
@@ -97,6 +72,7 @@ export function AddProductStepAvailability({
           <div className="flex items-center gap-3">
             <Checkbox
               id={field.name}
+              name={field.name}
               checked={field.state.value}
               className="data-checked:border-foreground data-checked:bg-foreground data-checked:text-background"
               onCheckedChange={(checked) =>
@@ -117,15 +93,19 @@ export function AddProductStepAvailability({
               name="stockQuantity"
               validators={{
                 onDynamic: ({ value }) =>
-                  validateStep3Field(form, "stockQuantity", value),
+                  getStockQuantityError(
+                    form.getFieldValue("isLimited"),
+                    value,
+                  ),
               }}
             >
-              {(field) => {
-                const errors = getFieldErrorMessages(field.state.meta.errors);
-
-                return (
-                  <div className="space-y-2">
-                    <Label htmlFor={field.name}>Ilość na magazynie</Label>
+              {(field) => (
+                <FormFieldShell
+                  label="Ilość na magazynie"
+                  htmlFor={field.name}
+                  errors={field.state.meta.errors}
+                >
+                  {({ invalid, describedBy }) => (
                     <Input
                       id={field.name}
                       name={field.name}
@@ -135,7 +115,9 @@ export function AddProductStepAvailability({
                       step={1}
                       value={field.state.value ?? ""}
                       placeholder="0"
-                      aria-invalid={errors.length > 0}
+                      autoComplete="off"
+                      aria-invalid={invalid}
+                      aria-describedby={describedBy}
                       onBlur={field.handleBlur}
                       onChange={(event) => {
                         field.handleChange(
@@ -143,18 +125,9 @@ export function AddProductStepAvailability({
                         );
                       }}
                     />
-                    {errors.map((message) => (
-                      <p
-                        key={message}
-                        className="text-sm text-destructive"
-                        role="alert"
-                      >
-                        {message}
-                      </p>
-                    ))}
-                  </div>
-                );
-              }}
+                  )}
+                </FormFieldShell>
+              )}
             </form.Field>
           ) : null
         }
@@ -170,7 +143,11 @@ export function AddProductStepAvailability({
             name="minCartQuantity"
             validators={{
               onDynamic: ({ value }) =>
-                validateStep3Field(form, "minCartQuantity", value),
+                getCartQuantityError(
+                  "minCartQuantity",
+                  value,
+                  form.getFieldValue("maxCartQuantity"),
+                ),
             }}
             listeners={{
               onChange: () => {
@@ -178,12 +155,13 @@ export function AddProductStepAvailability({
               },
             }}
           >
-            {(field) => {
-              const errors = getFieldErrorMessages(field.state.meta.errors);
-
-              return (
-                <div className="space-y-2">
-                  <Label htmlFor={field.name}>Minimalna ilość</Label>
+            {(field) => (
+              <FormFieldShell
+                label="Minimalna ilość"
+                htmlFor={field.name}
+                errors={field.state.meta.errors}
+              >
+                {({ invalid, describedBy }) => (
                   <Input
                     id={field.name}
                     name={field.name}
@@ -191,33 +169,30 @@ export function AddProductStepAvailability({
                     inputMode="numeric"
                     min={1}
                     step={1}
-                    value={field.state.value}
-                    aria-invalid={errors.length > 0}
+                    value={field.state.value > 0 ? field.state.value : ""}
+                    autoComplete="off"
+                    aria-invalid={invalid}
+                    aria-describedby={describedBy}
                     onBlur={field.handleBlur}
                     onChange={(event) => {
                       const parsed = parseIntegerInput(event.target.value);
                       field.handleChange(parsed ?? 0);
                     }}
                   />
-                  {errors.map((message) => (
-                    <p
-                      key={message}
-                      className="text-sm text-destructive"
-                      role="alert"
-                    >
-                      {message}
-                    </p>
-                  ))}
-                </div>
-              );
-            }}
+                )}
+              </FormFieldShell>
+            )}
           </form.Field>
 
           <form.Field
             name="maxCartQuantity"
             validators={{
               onDynamic: ({ value }) =>
-                validateStep3Field(form, "maxCartQuantity", value),
+                getCartQuantityError(
+                  "maxCartQuantity",
+                  form.getFieldValue("minCartQuantity"),
+                  value,
+                ),
             }}
             listeners={{
               onChange: () => {
@@ -225,12 +200,13 @@ export function AddProductStepAvailability({
               },
             }}
           >
-            {(field) => {
-              const errors = getFieldErrorMessages(field.state.meta.errors);
-
-              return (
-                <div className="space-y-2">
-                  <Label htmlFor={field.name}>Maksymalna ilość</Label>
+            {(field) => (
+              <FormFieldShell
+                label="Maksymalna ilość"
+                htmlFor={field.name}
+                errors={field.state.meta.errors}
+              >
+                {({ invalid, describedBy }) => (
                   <Input
                     id={field.name}
                     name={field.name}
@@ -238,26 +214,19 @@ export function AddProductStepAvailability({
                     inputMode="numeric"
                     min={1}
                     step={1}
-                    value={field.state.value}
-                    aria-invalid={errors.length > 0}
+                    value={field.state.value > 0 ? field.state.value : ""}
+                    autoComplete="off"
+                    aria-invalid={invalid}
+                    aria-describedby={describedBy}
                     onBlur={field.handleBlur}
                     onChange={(event) => {
                       const parsed = parseIntegerInput(event.target.value);
                       field.handleChange(parsed ?? 0);
                     }}
                   />
-                  {errors.map((message) => (
-                    <p
-                      key={message}
-                      className="text-sm text-destructive"
-                      role="alert"
-                    >
-                      {message}
-                    </p>
-                  ))}
-                </div>
-              );
-            }}
+                )}
+              </FormFieldShell>
+            )}
           </form.Field>
         </div>
       </div>

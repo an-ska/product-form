@@ -1,3 +1,5 @@
+import type { VatRate } from "./types";
+
 /** Round money to 2 decimal places (grosze / cents). */
 export function roundMoney(value: number): number {
   return Math.round(value * 100) / 100;
@@ -20,4 +22,41 @@ export function formatPrice(amount: number, currency: string): string {
   }).format(amount);
 
   return `${formatted} ${currency}`;
+}
+
+export function pricesFromNet(netPrice: number | null, vatRate: number) {
+  if (netPrice === null) {
+    return { netPrice: null, grossPrice: null };
+  }
+
+  return {
+    netPrice,
+    grossPrice: calculateGrossPrice(netPrice, vatRate),
+  };
+}
+
+export function pricesFromGross(grossPrice: number | null, vatRate: number) {
+  if (grossPrice === null) {
+    return { netPrice: null, grossPrice: null };
+  }
+
+  return {
+    netPrice: calculateNetPrice(grossPrice, vatRate),
+    grossPrice,
+  };
+}
+
+export function pricesFromVatChange(
+  netPrice: number | null,
+  vatRate: VatRate,
+) {
+  if (netPrice === null) {
+    return { netPrice: null, grossPrice: null, vatRate };
+  }
+
+  return {
+    netPrice,
+    grossPrice: calculateGrossPrice(netPrice, vatRate),
+    vatRate,
+  };
 }

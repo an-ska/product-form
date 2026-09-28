@@ -2,34 +2,36 @@
 
 import { useState } from "react";
 
-import { getFieldErrorMessages } from "@/components/products/field-errors";
+import { FormFieldShell } from "@/components/products/field-errors";
+import {
+  FormSelect,
+  toFormSelectOptions,
+} from "@/components/products/form-select";
 import type { ProductFormApi } from "@/components/products/use-product-form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   CURRENCIES,
   VAT_RATES,
+  parseCurrency,
+  parseVatRate,
   pricesFromGross,
   pricesFromNet,
   pricesFromVatChange,
   productStep2Schema,
-  type Currency,
-  type VatRate,
 } from "@/lib/product";
+
+const currencyOptions = toFormSelectOptions(CURRENCIES);
+const vatRateOptions = toFormSelectOptions(
+  VAT_RATES.map(String),
+  (rate) => `${rate}%`,
+);
 
 type AddProductStepPriceProps = {
   form: ProductFormApi;
 };
 
-function formatMoneyDraft(value: number): string {
-  return value === 0 ? "" : String(value);
+function formatMoneyDraft(value: number | null): string {
+  return value === null ? "" : String(value);
 }
 
 function parseMoneyInput(raw: string): number | null {
@@ -44,10 +46,11 @@ function parseMoneyInput(raw: string): number | null {
 type MoneyFieldInputProps = {
   id: string;
   name: string;
-  value: number;
+  value: number | null;
   invalid: boolean;
+  describedBy?: string;
   onBlur: () => void;
-  onValueChange: (value: number) => void;
+  onValueChange: (value: number | null) => void;
 };
 
 function MoneyFieldInput({
@@ -55,6 +58,7 @@ function MoneyFieldInput({
   name,
   value,
   invalid,
+  describedBy,
   onBlur,
   onValueChange,
 }: MoneyFieldInputProps) {
@@ -69,7 +73,9 @@ function MoneyFieldInput({
       inputMode="decimal"
       value={displayValue}
       placeholder="0.00"
+      autoComplete="off"
       aria-invalid={invalid}
+      aria-describedby={describedBy}
       onFocus={() => {
         setDraft(formatMoneyDraft(value));
       }}
@@ -86,9 +92,7 @@ function MoneyFieldInput({
 
         const normalized = raw.replace(",", ".");
         setDraft(raw);
-
-        const parsed = parseMoneyInput(normalized);
-        onValueChange(parsed ?? 0);
+        onValueChange(parseMoneyInput(normalized));
       }}
     />
   );
@@ -104,17 +108,19 @@ export function AddProductStepPrice({ form }: AddProductStepPriceProps) {
             onDynamic: productStep2Schema.shape.netPrice,
           }}
         >
-          {(field) => {
-            const errors = getFieldErrorMessages(field.state.meta.errors);
-
-            return (
-              <div className="space-y-2">
-                <Label htmlFor={field.name}>Cena netto</Label>
+          {(field) => (
+            <FormFieldShell
+              label="Cena netto"
+              htmlFor={field.name}
+              errors={field.state.meta.errors}
+            >
+              {({ invalid, describedBy }) => (
                 <MoneyFieldInput
                   id={field.name}
                   name={field.name}
                   value={field.state.value}
-                  invalid={errors.length > 0}
+                  invalid={invalid}
+                  describedBy={describedBy}
                   onBlur={field.handleBlur}
                   onValueChange={(parsed) => {
                     const next = pricesFromNet(
@@ -125,14 +131,9 @@ export function AddProductStepPrice({ form }: AddProductStepPriceProps) {
                     form.setFieldValue("grossPrice", next.grossPrice);
                   }}
                 />
-                {errors.map((message) => (
-                  <p key={message} className="text-sm text-destructive" role="alert">
-                    {message}
-                  </p>
-                ))}
-              </div>
-            );
-          }}
+              )}
+            </FormFieldShell>
+          )}
         </form.Field>
 
         <form.Field
@@ -141,17 +142,19 @@ export function AddProductStepPrice({ form }: AddProductStepPriceProps) {
             onDynamic: productStep2Schema.shape.grossPrice,
           }}
         >
-          {(field) => {
-            const errors = getFieldErrorMessages(field.state.meta.errors);
-
-            return (
-              <div className="space-y-2">
-                <Label htmlFor={field.name}>Cena brutto</Label>
+          {(field) => (
+            <FormFieldShell
+              label="Cena brutto"
+              htmlFor={field.name}
+              errors={field.state.meta.errors}
+            >
+              {({ invalid, describedBy }) => (
                 <MoneyFieldInput
                   id={field.name}
                   name={field.name}
                   value={field.state.value}
-                  invalid={errors.length > 0}
+                  invalid={invalid}
+                  describedBy={describedBy}
                   onBlur={field.handleBlur}
                   onValueChange={(parsed) => {
                     const next = pricesFromGross(
@@ -162,14 +165,9 @@ export function AddProductStepPrice({ form }: AddProductStepPriceProps) {
                     form.setFieldValue("netPrice", next.netPrice);
                   }}
                 />
-                {errors.map((message) => (
-                  <p key={message} className="text-sm text-destructive" role="alert">
-                    {message}
-                  </p>
-                ))}
-              </div>
-            );
-          }}
+              )}
+            </FormFieldShell>
+          )}
         </form.Field>
       </div>
 
@@ -180,16 +178,28 @@ export function AddProductStepPrice({ form }: AddProductStepPriceProps) {
             onDynamic: productStep2Schema.shape.vatRate,
           }}
         >
-          {(field) => {
-            const errors = getFieldErrorMessages(field.state.meta.errors);
-
-            return (
-              <div className="space-y-2">
-                <Label htmlFor={field.name}>Stawka VAT</Label>
-                <Select
+          {(field) => (
+            <FormFieldShell
+              label="Stawka VAT"
+              htmlFor={field.name}
+              errors={field.state.meta.errors}
+            >
+              {({ invalid, describedBy, labelId }) => (
+                <FormSelect
+                  id={field.name}
                   value={String(field.state.value)}
+                  placeholder="Wybierz stawkę VAT"
+                  options={vatRateOptions}
+                  invalid={invalid}
+                  describedBy={describedBy}
+                  labelId={labelId}
+                  onBlur={field.handleBlur}
                   onValueChange={(value) => {
-                    const vatRate = Number(value) as VatRate;
+                    const vatRate = parseVatRate(value);
+                    if (vatRate === null) {
+                      return;
+                    }
+
                     const next = pricesFromVatChange(
                       form.getFieldValue("netPrice"),
                       vatRate,
@@ -197,30 +207,10 @@ export function AddProductStepPrice({ form }: AddProductStepPriceProps) {
                     field.handleChange(next.vatRate);
                     form.setFieldValue("grossPrice", next.grossPrice);
                   }}
-                >
-                  <SelectTrigger
-                    id={field.name}
-                    className="w-full"
-                    aria-invalid={errors.length > 0}
-                  >
-                    <SelectValue placeholder="Wybierz stawkę VAT" />
-                  </SelectTrigger>
-                  <SelectContent position="popper">
-                    {VAT_RATES.map((rate) => (
-                      <SelectItem key={rate} value={String(rate)}>
-                        {rate}%
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.map((message) => (
-                  <p key={message} className="text-sm text-destructive" role="alert">
-                    {message}
-                  </p>
-                ))}
-              </div>
-            );
-          }}
+                />
+              )}
+            </FormFieldShell>
+          )}
         </form.Field>
 
         <form.Field
@@ -229,41 +219,32 @@ export function AddProductStepPrice({ form }: AddProductStepPriceProps) {
             onDynamic: productStep2Schema.shape.currency,
           }}
         >
-          {(field) => {
-            const errors = getFieldErrorMessages(field.state.meta.errors);
-
-            return (
-              <div className="space-y-2">
-                <Label htmlFor={field.name}>Waluta</Label>
-                <Select
+          {(field) => (
+            <FormFieldShell
+              label="Waluta"
+              htmlFor={field.name}
+              errors={field.state.meta.errors}
+            >
+              {({ invalid, describedBy, labelId }) => (
+                <FormSelect
+                  id={field.name}
                   value={field.state.value}
-                  onValueChange={(value) =>
-                    field.handleChange(value as Currency)
-                  }
-                >
-                  <SelectTrigger
-                    id={field.name}
-                    className="w-full"
-                    aria-invalid={errors.length > 0}
-                  >
-                    <SelectValue placeholder="Wybierz walutę" />
-                  </SelectTrigger>
-                  <SelectContent position="popper">
-                    {CURRENCIES.map((currency) => (
-                      <SelectItem key={currency} value={currency}>
-                        {currency}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.map((message) => (
-                  <p key={message} className="text-sm text-destructive" role="alert">
-                    {message}
-                  </p>
-                ))}
-              </div>
-            );
-          }}
+                  placeholder="Wybierz walutę"
+                  options={currencyOptions}
+                  invalid={invalid}
+                  describedBy={describedBy}
+                  labelId={labelId}
+                  onBlur={field.handleBlur}
+                  onValueChange={(value) => {
+                    const currency = parseCurrency(value);
+                    if (currency) {
+                      field.handleChange(currency);
+                    }
+                  }}
+                />
+              )}
+            </FormFieldShell>
+          )}
         </form.Field>
       </div>
     </div>

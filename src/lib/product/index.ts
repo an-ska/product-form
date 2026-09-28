@@ -21,9 +21,6 @@ export { formatCatalogCountLabel, formatPaginationSummary, formatStockQuantity }
 
 export {
   createProductFromFormValues,
-  pricesFromGross,
-  pricesFromNet,
-  pricesFromVatChange,
 } from "./mappers";
 
 export { initialProducts } from "./mock-data";
@@ -38,15 +35,23 @@ export {
   calculateGrossPrice,
   calculateNetPrice,
   formatPrice,
+  pricesFromGross,
+  pricesFromNet,
+  pricesFromVatChange,
   roundMoney,
 } from "./pricing";
 
 export {
+  getCartQuantityError,
+  getStockQuantityError,
   productFormSchema,
+  productFormValuesSchema,
   productStep1Schema,
   productStep2Schema,
+  productStep3FieldsSchema,
   productStep3Schema,
   type ProductFormSchemaValues,
+  type ProductFormValues,
   type ProductStep1Values,
   type ProductStep2Values,
   type ProductStep3Values,
@@ -55,12 +60,15 @@ export {
 export {
   getProductStatus,
   getProductStatusLabel,
+  parseCategory,
+  parseCurrency,
+  parseProducer,
+  parseVatRate,
   type Category,
   type Currency,
   type Producer,
   type Product,
   type ProductFeature,
-  type ProductFormValues,
   type ProductStatus,
   type VatRate,
 } from "./types";

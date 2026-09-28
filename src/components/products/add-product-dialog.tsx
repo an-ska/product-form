@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 
 import { AddProductStepAvailability } from "@/components/products/add-product-step-availability";
@@ -21,11 +21,10 @@ import {
   PRODUCT_FORM_STEP_COUNT,
   createProductFromFormValues,
   productFormSchema,
-  productStep1Schema,
-  productStep2Schema,
   type Product,
   type ProductFormStepId,
 } from "@/lib/product";
+import { cn } from "@/lib/utils";
 
 type AddProductDialogProps = {
   open: boolean;
@@ -33,29 +32,23 @@ type AddProductDialogProps = {
   onProductCreated: (product: Product) => void;
 };
 
-const STEP1_FIELDS = [
-  "name",
-  "sku",
-  "description",
-  "producer",
-  "category",
-  "features",
-] as const satisfies ReadonlyArray<keyof typeof productStep1Schema.shape>;
+function scrollToFirstFieldError(formElement: HTMLFormElement) {
+  window.setTimeout(() => {
+    const target =
+      formElement.querySelector<HTMLElement>('[aria-invalid="true"]') ??
+      formElement.querySelector<HTMLElement>('[role="alert"]');
 
-const STEP2_FIELDS = [
-  "netPrice",
-  "grossPrice",
-  "vatRate",
-  "currency",
-] as const satisfies ReadonlyArray<keyof typeof productStep2Schema.shape>;
+    if (!target) {
+      return;
+    }
 
-const STEP3_FIELDS = [
-  "isAvailable",
-  "isLimited",
-  "stockQuantity",
-  "minCartQuantity",
-  "maxCartQuantity",
-] as const;
+    target.scrollIntoView({ behavior: "smooth", block: "center" });
+
+    if (typeof target.focus === "function") {
+      target.focus({ preventScroll: true });
+    }
+  }, 0);
+}
 
 export function AddProductDialog({
   open,
@@ -63,10 +56,44 @@ export function AddProductDialog({
   onProductCreated,
 }: AddProductDialogProps) {
   const [step, setStep] = useState<ProductFormStepId>(1);
-  const form = useProductForm();
+  const [formError, setFormError] = useState<string | null>(null);
+  const formElementRef = useRef<HTMLFormElement>(null);
+
+  const form = useProductForm({
+    onSubmit: async ({ value, meta }) => {
+      setFormError(null);
+
+      if (meta.intent === "save") {
+        const parsed = productFormSchema.safeParse(value);
+        if (!parsed.success) {
+          setFormError(
+            "Nie udało się zapisać produktu. Sprawdź poprawność danych we wszystkich krokach.",
+          );
+          return;
+        }
+
+        onProductCreated(createProductFromFormValues(parsed.data));
+        handleOpenChange(false);
+        return;
+      }
+
+      setStep((current) =>
+        current < PRODUCT_FORM_STEP_COUNT
+          ? ((current + 1) as ProductFormStepId)
+          : current,
+      );
+    },
+    onSubmitInvalid: () => {
+      setFormError(null);
+      if (formElementRef.current) {
+        scrollToFirstFieldError(formElementRef.current);
+      }
+    },
+  });
 
   function resetDialogState() {
     setStep(1);
+    setFormError(null);
     form.reset();
   }
 
@@ -79,83 +106,21 @@ export function AddProductDialog({
   }
 
   function handleBack() {
+    setFormError(null);
     setStep((current) =>
       current > 1 ? ((current - 1) as ProductFormStepId) : current,
     );
   }
 
-  function bumpSubmissionAttempts() {
-    if (form.state.submissionAttempts === 0) {
-      form.baseStore.setState((prev) => ({
-        ...prev,
-        submissionAttempts: 1,
-      }));
-    }
-  }
+  function handleFormSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    event.stopPropagation();
 
-  async function validateStepFields(
-    fieldNames: ReadonlyArray<
-      | (typeof STEP1_FIELDS)[number]
-      | (typeof STEP2_FIELDS)[number]
-      | (typeof STEP3_FIELDS)[number]
-    >,
-  ) {
-    bumpSubmissionAttempts();
-
-    for (const fieldName of fieldNames) {
-      form.setFieldMeta(fieldName, (prev) => ({
-        ...prev,
-        isTouched: true,
-      }));
-    }
-
-    await Promise.all(
-      fieldNames.map((fieldName) =>
-        Promise.resolve().then(() => form.validateField(fieldName, "submit")),
-      ),
+    void form.handleSubmit(
+      step === PRODUCT_FORM_STEP_COUNT
+        ? { intent: "save" }
+        : { intent: "next" },
     );
-
-    return fieldNames.some((fieldName) => {
-      const fieldMeta = form.getFieldMeta(fieldName);
-      return Boolean(fieldMeta?.errors.length);
-    });
-  }
-
-  async function handleNext() {
-    if (step === 1) {
-      const hasStepErrors = await validateStepFields(STEP1_FIELDS);
-      if (hasStepErrors) {
-        return;
-      }
-    }
-
-    if (step === 2) {
-      const hasStepErrors = await validateStepFields(STEP2_FIELDS);
-      if (hasStepErrors) {
-        return;
-      }
-    }
-
-    setStep((current) =>
-      current < PRODUCT_FORM_STEP_COUNT
-        ? ((current + 1) as ProductFormStepId)
-        : current,
-    );
-  }
-
-  async function handleSave() {
-    const hasStepErrors = await validateStepFields(STEP3_FIELDS);
-    if (hasStepErrors) {
-      return;
-    }
-
-    const parsed = productFormSchema.safeParse(form.state.values);
-    if (!parsed.success) {
-      return;
-    }
-
-    onProductCreated(createProductFromFormValues(parsed.data));
-    handleOpenChange(false);
   }
 
   const isFirstStep = step === 1;
@@ -180,58 +145,65 @@ export function AddProductDialog({
           aria-hidden
         />
 
-        <div className="px-4 py-3">
-          <AddProductStepper currentStep={step} />
-        </div>
-        <div
-          className="mx-4 border-b border-border sm:mx-0"
-          aria-hidden
-        />
+        <form
+          ref={formElementRef}
+          className="flex min-h-0 flex-1 flex-col"
+          onSubmit={handleFormSubmit}
+          noValidate
+          autoComplete="off"
+        >
+          <div className="px-4 py-3">
+            <AddProductStepper currentStep={step} />
+          </div>
+          <div
+            className="mx-4 border-b border-border sm:mx-0"
+            aria-hidden
+          />
 
-        <div className="flex-1 overflow-y-auto px-4 py-5">
-          {step === 1 ? <AddProductStepInfo form={form} /> : null}
-          {step === 2 ? <AddProductStepPrice form={form} /> : null}
-          {step === 3 ? <AddProductStepAvailability form={form} /> : null}
-        </div>
+          <div className="flex-1 overflow-y-auto px-4 py-5">
+            {step === 1 ? <AddProductStepInfo form={form} /> : null}
+            {step === 2 ? <AddProductStepPrice form={form} /> : null}
+            {step === 3 ? <AddProductStepAvailability form={form} /> : null}
+          </div>
 
-        <DialogFooter className="mx-0 mb-0 flex-row justify-between gap-2 rounded-none border-border bg-accent px-4 py-4 sm:justify-between">
-          {isFirstStep ? (
-            <span />
-          ) : (
-            <Button
-              type="button"
-              variant="outline"
-              className="h-9 rounded-full px-4"
-              onClick={handleBack}
-            >
-              <ArrowLeft data-icon="inline-start" />
-              Wstecz
-            </Button>
-          )}
+          {formError ? (
+            <p className="px-4 pb-2 text-sm text-destructive" role="alert">
+              {formError}
+            </p>
+          ) : null}
 
-          {isLastStep ? (
-            <Button
-              type="button"
-              className="h-9 rounded-full px-4"
-              onClick={() => {
-                void handleSave();
-              }}
-            >
-              Zapisz produkt
+          <DialogFooter
+            className={cn(
+              "mx-0 mb-0 flex-row gap-2 rounded-none border-border bg-accent px-4 py-4",
+              isFirstStep
+                ? "justify-end sm:justify-end"
+                : "justify-between sm:justify-between",
+            )}
+          >
+            {!isFirstStep ? (
+              <Button
+                type="button"
+                variant="outline"
+                className="h-9 rounded-full px-4"
+                onClick={handleBack}
+              >
+                <ArrowLeft data-icon="inline-start" />
+                Wstecz
+              </Button>
+            ) : null}
+
+            <Button type="submit" className="h-9 rounded-full px-4">
+              {isLastStep ? (
+                "Zapisz produkt"
+              ) : (
+                <>
+                  Dalej
+                  <ArrowRight data-icon="inline-end" />
+                </>
+              )}
             </Button>
-          ) : (
-            <Button
-              type="button"
-              className="h-9 rounded-full px-4"
-              onClick={() => {
-                void handleNext();
-              }}
-            >
-              Dalej
-              <ArrowRight data-icon="inline-end" />
-            </Button>
-          )}
-        </DialogFooter>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

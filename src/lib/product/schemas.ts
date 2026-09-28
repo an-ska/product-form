@@ -37,8 +37,22 @@ const vatRateSchema = z.union(
   { error: "Wybierz stawkę VAT" },
 ) satisfies z.ZodType<VatRate>;
 
+const nameSchema = z.string().trim().superRefine((value, ctx) => {
+  if (!value) {
+    ctx.addIssue({ code: "custom", message: "Nazwa jest wymagana" });
+    return;
+  }
+
+  if (value.length < 3) {
+    ctx.addIssue({
+      code: "custom",
+      message: "Nazwa musi mieć co najmniej 3 znaki",
+    });
+  }
+});
+
 export const productStep1Schema = z.object({
-  name: z.string().trim().min(3, "Nazwa musi mieć co najmniej 3 znaki"),
+  name: nameSchema,
   sku: skuSchema,
   description: z.string().trim(),
   producer: z.enum(PRODUCERS, { error: "Wybierz producenta" }),
@@ -51,10 +65,10 @@ export const productStep1Schema = z.object({
 export const productStep2Schema = z.object({
   netPrice: z
     .number({ error: "Podaj cenę netto" })
-    .min(0, "Cena netto nie może być ujemna"),
+    .positive("Cena netto musi być większa od zera"),
   grossPrice: z
     .number({ error: "Podaj cenę brutto" })
-    .min(0, "Cena brutto nie może być ujemna"),
+    .positive("Cena brutto musi być większa od zera"),
   vatRate: vatRateSchema,
   currency: z.enum(CURRENCIES, { error: "Wybierz walutę" }),
 });
@@ -69,15 +83,17 @@ const positiveInt = z
   .int("Wartość musi być liczbą całkowitą")
   .min(1, "Wartość musi być większa od zera");
 
-export const productStep3Schema = z
-  .object({
-    isAvailable: z.boolean(),
-    isLimited: z.boolean(),
-    stockQuantity: z.number().nullable(),
-    minCartQuantity: positiveInt,
-    maxCartQuantity: positiveInt,
-  })
-  .superRefine((values, ctx) => {
+/** Field shape for step 3 (without cross-field / conditional rules). */
+export const productStep3FieldsSchema = z.object({
+  isAvailable: z.boolean(),
+  isLimited: z.boolean(),
+  stockQuantity: z.number().nullable(),
+  minCartQuantity: positiveInt,
+  maxCartQuantity: positiveInt,
+});
+
+export const productStep3Schema = productStep3FieldsSchema.superRefine(
+  (values, ctx) => {
     if (values.isLimited) {
       const stockResult = nonNegativeInt.safeParse(values.stockQuantity);
 
@@ -103,13 +119,69 @@ export const productStep3Schema = z
         message: "Maksymalna ilość nie może być mniejsza niż minimalna",
       });
     }
-  });
+  },
+);
+
+/** Field-level helper: stock is required only when the product is limited. */
+export function getStockQuantityError(
+  isLimited: boolean,
+  stockQuantity: number | null,
+): string | undefined {
+  if (!isLimited) {
+    return undefined;
+  }
+
+  const result = nonNegativeInt.safeParse(stockQuantity);
+  return result.success ? undefined : result.error.issues[0]?.message;
+}
+
+/** Field-level helper: own constraints + min ≤ max. */
+export function getCartQuantityError(
+  field: "minCartQuantity" | "maxCartQuantity",
+  minCartQuantity: number,
+  maxCartQuantity: number,
+): string | undefined {
+  const value =
+    field === "minCartQuantity" ? minCartQuantity : maxCartQuantity;
+  const result = positiveInt.safeParse(value);
+
+  if (!result.success) {
+    return result.error.issues[0]?.message;
+  }
+
+  if (minCartQuantity > maxCartQuantity) {
+    return field === "minCartQuantity"
+      ? "Minimalna ilość nie może być większa niż maksymalna"
+      : "Maksymalna ilość nie może być mniejsza niż minimalna";
+  }
+
+  return undefined;
+}
 
 export const productFormSchema = productStep1Schema
   .and(productStep2Schema)
   .and(productStep3Schema);
 
+export const productFormValuesSchema = z.object({
+  name: z.string(),
+  sku: z.string(),
+  description: z.string(),
+  producer: z.union([z.enum(PRODUCERS), z.literal("")]),
+  category: z.union([z.enum(CATEGORIES), z.literal("")]),
+  features: z.array(z.enum(PRODUCT_FEATURES)),
+  netPrice: z.number().nullable(),
+  grossPrice: z.number().nullable(),
+  vatRate: vatRateSchema,
+  currency: z.enum(CURRENCIES),
+  isAvailable: z.boolean(),
+  isLimited: z.boolean(),
+  stockQuantity: z.number().nullable(),
+  minCartQuantity: z.number(),
+  maxCartQuantity: z.number(),
+});
+
 export type ProductStep1Values = z.infer<typeof productStep1Schema>;
 export type ProductStep2Values = z.infer<typeof productStep2Schema>;
 export type ProductStep3Values = z.infer<typeof productStep3Schema>;
 export type ProductFormSchemaValues = z.infer<typeof productFormSchema>;
+export type ProductFormValues = z.infer<typeof productFormValuesSchema>;
