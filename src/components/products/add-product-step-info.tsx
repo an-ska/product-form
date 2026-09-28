@@ -34,8 +34,7 @@ export function AddProductStepInfo({ form }: AddProductStepInfoProps) {
         <form.Field
           name="name"
           validators={{
-            onBlur: productStep1Schema.shape.name,
-            onSubmit: productStep1Schema.shape.name,
+            onDynamic: productStep1Schema.shape.name,
           }}
         >
           {(field) => {
@@ -66,8 +65,7 @@ export function AddProductStepInfo({ form }: AddProductStepInfoProps) {
         <form.Field
           name="sku"
           validators={{
-            onBlur: productStep1Schema.shape.sku,
-            onSubmit: productStep1Schema.shape.sku,
+            onDynamic: productStep1Schema.shape.sku,
           }}
         >
           {(field) => {
@@ -99,8 +97,7 @@ export function AddProductStepInfo({ form }: AddProductStepInfoProps) {
       <form.Field
         name="description"
         validators={{
-          onBlur: productStep1Schema.shape.description,
-          onSubmit: productStep1Schema.shape.description,
+          onDynamic: productStep1Schema.shape.description,
         }}
       >
         {(field) => {
@@ -133,8 +130,7 @@ export function AddProductStepInfo({ form }: AddProductStepInfoProps) {
         <form.Field
           name="producer"
           validators={{
-            onChange: productStep1Schema.shape.producer,
-            onSubmit: productStep1Schema.shape.producer,
+            onDynamic: productStep1Schema.shape.producer,
           }}
         >
           {(field) => {
@@ -177,8 +173,7 @@ export function AddProductStepInfo({ form }: AddProductStepInfoProps) {
         <form.Field
           name="category"
           validators={{
-            onChange: productStep1Schema.shape.category,
-            onSubmit: productStep1Schema.shape.category,
+            onDynamic: productStep1Schema.shape.category,
           }}
         >
           {(field) => {
@@ -222,8 +217,7 @@ export function AddProductStepInfo({ form }: AddProductStepInfoProps) {
       <form.Field
         name="features"
         validators={{
-          onChange: productStep1Schema.shape.features,
-          onSubmit: productStep1Schema.shape.features,
+          onDynamic: productStep1Schema.shape.features,
         }}
       >
         {(field) => {

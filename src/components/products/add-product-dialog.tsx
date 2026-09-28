@@ -75,6 +75,14 @@ export function AddProductDialog({
       (typeof STEP1_FIELDS)[number] | (typeof STEP2_FIELDS)[number]
     >,
   ) {
+    
+    if (form.state.submissionAttempts === 0) {
+      form.baseStore.setState((prev) => ({
+        ...prev,
+        submissionAttempts: 1,
+      }));
+    }
+
     await Promise.all(
       fieldNames.map((fieldName) => form.validateField(fieldName, "submit")),
     );
@@ -120,32 +128,35 @@ export function AddProductDialog({
         showCloseButton
         className="flex max-h-[min(90vh,720px)] w-full max-w-[calc(100%-2rem)] flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl"
       >
-        <DialogHeader className="border-b border-border px-6 py-4 pr-12 text-left">
-          <DialogTitle className="text-lg font-semibold">
+        <DialogHeader className="px-6 py-4 pr-12 text-left">
+          <DialogTitle className="text-lg font-medium">
             Dodaj nowy produkt
           </DialogTitle>
           <DialogDescription className="sr-only">
             Wieloetapowy formularz dodawania produktu do katalogu.
           </DialogDescription>
         </DialogHeader>
+        <div className="mx-6 border-b border-border sm:mx-0" aria-hidden />
 
         <div className="flex-1 overflow-y-auto px-6 py-5">
           <AddProductStepper currentStep={step} />
+          <div className="mt-6 border-b border-border sm:-mx-6" aria-hidden />
 
-          <div className="mt-8 min-h-40">
+          <div className="mt-6 min-h-40">
             {step === 1 ? <AddProductStepInfo form={form} /> : null}
             {step === 2 ? <AddProductStepPrice form={form} /> : null}
           </div>
         </div>
 
-        <DialogFooter className="mx-0 mb-0 rounded-none border-border bg-background sm:justify-between">
+        <DialogFooter className="mx-0 mb-0 flex-row justify-between rounded-none border-border bg-background px-6 py-4 sm:justify-between">
           {isFirstStep ? (
             <span />
           ) : (
             <Button
               type="button"
               variant="outline"
-              className="rounded-full"
+              size="lg"
+              className="px-4"
               onClick={handleBack}
             >
               <ArrowLeft data-icon="inline-start" />
@@ -156,7 +167,8 @@ export function AddProductDialog({
           {isLastStep ? (
             <Button
               type="button"
-              className="rounded-full"
+              size="lg"
+              className="rounded-full px-4"
               onClick={handleSave}
             >
               Zapisz produkt
@@ -164,7 +176,8 @@ export function AddProductDialog({
           ) : (
             <Button
               type="button"
-              className="rounded-full"
+              size="lg"
+              className="rounded-full px-4"
               onClick={() => {
                 void handleNext();
               }}

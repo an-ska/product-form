@@ -1,12 +1,16 @@
 "use client";
 
-import { useForm } from "@tanstack/react-form";
+import { revalidateLogic, useForm } from "@tanstack/react-form";
 
 import { defaultProductFormValues } from "@/lib/product";
 
 export function useProductForm() {
   return useForm({
     defaultValues: defaultProductFormValues,
+    validationLogic: revalidateLogic({
+      mode: "blur",
+      modeAfterSubmission: "change",
+    }),
   });
 }
 

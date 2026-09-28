@@ -42,8 +42,7 @@ export function AddProductStepPrice({ form }: AddProductStepPriceProps) {
         <form.Field
           name="netPrice"
           validators={{
-            onBlur: productStep2Schema.shape.netPrice,
-            onSubmit: productStep2Schema.shape.netPrice,
+            onDynamic: productStep2Schema.shape.netPrice,
           }}
         >
           {(field) => {
@@ -96,8 +95,7 @@ export function AddProductStepPrice({ form }: AddProductStepPriceProps) {
         <form.Field
           name="grossPrice"
           validators={{
-            onBlur: productStep2Schema.shape.grossPrice,
-            onSubmit: productStep2Schema.shape.grossPrice,
+            onDynamic: productStep2Schema.shape.grossPrice,
           }}
         >
           {(field) => {
@@ -152,8 +150,7 @@ export function AddProductStepPrice({ form }: AddProductStepPriceProps) {
         <form.Field
           name="vatRate"
           validators={{
-            onChange: productStep2Schema.shape.vatRate,
-            onSubmit: productStep2Schema.shape.vatRate,
+            onDynamic: productStep2Schema.shape.vatRate,
           }}
         >
           {(field) => {
@@ -202,8 +199,7 @@ export function AddProductStepPrice({ form }: AddProductStepPriceProps) {
         <form.Field
           name="currency"
           validators={{
-            onChange: productStep2Schema.shape.currency,
-            onSubmit: productStep2Schema.shape.currency,
+            onDynamic: productStep2Schema.shape.currency,
           }}
         >
           {(field) => {

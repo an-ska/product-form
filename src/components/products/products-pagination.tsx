@@ -28,7 +28,7 @@ export function ProductsPagination({
   return (
     <div
       className={cn(
-        "flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between",
+        "flex flex-col items-center gap-3 md:flex-row md:justify-between",
         className,
       )}
     >

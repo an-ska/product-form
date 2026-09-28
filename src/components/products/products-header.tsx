@@ -15,7 +15,7 @@ export function ProductsHeader({
   return (
     <div className="mb-6 flex items-start justify-between gap-3 sm:mb-8">
       <div className="min-w-0 space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+        <h1 className="text-3xl font-semibold tracking-tight text-foreground">
           Produkty
         </h1>
         <p className="text-sm text-muted-foreground">

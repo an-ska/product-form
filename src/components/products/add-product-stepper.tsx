@@ -24,7 +24,7 @@ export function AddProductStepper({ currentStep }: AddProductStepperProps) {
             key={step.id}
             className={cn("flex min-w-0", isLast ? "flex-none" : "flex-1")}
           >
-            <div className="flex min-w-0 flex-col items-center gap-2 sm:flex-row sm:items-start sm:gap-3">
+            <div className="flex min-w-0 flex-col items-start gap-2 sm:flex-row sm:items-start sm:gap-3">
               <span
                 className={cn(
                   "flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-medium",
@@ -42,7 +42,7 @@ export function AddProductStepper({ currentStep }: AddProductStepperProps) {
                 )}
               </span>
 
-              <div className="min-w-0 text-center sm:text-left">
+              <div className="min-w-0 text-left">
                 <p
                   className={cn(
                     "text-sm font-medium",

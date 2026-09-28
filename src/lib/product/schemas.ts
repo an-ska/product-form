@@ -9,12 +9,27 @@ import {
 } from "./constants";
 import type { VatRate } from "./types";
 
-const skuSchema = z
-  .string()
-  .trim()
-  .min(1, "SKU jest wymagane")
-  .max(24, "SKU może mieć maksymalnie 24 znaki")
-  .regex(/^[a-zA-Z0-9]+$/, "SKU może zawierać tylko litery i cyfry");
+const skuSchema = z.string().trim().superRefine((value, ctx) => {
+  if (!value) {
+    ctx.addIssue({ code: "custom", message: "SKU jest wymagane" });
+    return;
+  }
+
+  if (value.length > 24) {
+    ctx.addIssue({
+      code: "custom",
+      message: "SKU może mieć maksymalnie 24 znaki",
+    });
+    return;
+  }
+
+  if (!/^[a-zA-Z0-9]+$/.test(value)) {
+    ctx.addIssue({
+      code: "custom",
+      message: "SKU może zawierać tylko litery i cyfry",
+    });
+  }
+});
 
 const [vat0, vat5, vat8, vat23] = VAT_RATES;
 const vatRateSchema = z.union(

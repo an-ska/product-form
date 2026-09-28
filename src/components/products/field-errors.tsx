@@ -1,5 +1,5 @@
 export function getFieldErrorMessages(errors: unknown[]): string[] {
-  return errors.flatMap((error) => {
+  const messages = errors.flatMap((error) => {
     if (!error) {
       return [];
     }
@@ -18,4 +18,6 @@ export function getFieldErrorMessages(errors: unknown[]): string[] {
 
     return [];
   });
+
+  return [...new Set(messages)];
 }

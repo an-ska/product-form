@@ -72,7 +72,7 @@ export function ProductsTable({ products, footer }: ProductsTableProps) {
           ))}
         </TableBody>
       </Table>
-      <div className="border-t border-border px-4 py-3">{footer}</div>
+      <div className="border-t border-border bg-table-header px-4 py-3">{footer}</div>
     </div>
   );
 }
