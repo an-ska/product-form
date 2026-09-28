@@ -1,6 +1,6 @@
 import { calculateGrossPrice, calculateNetPrice } from "./pricing";
 import type { ProductFormSchemaValues } from "./schemas";
-import type { Product } from "./types";
+import type { Product, VatRate } from "./types";
 
 export function createProductFromFormValues(
   values: ProductFormSchemaValues,
@@ -43,7 +43,7 @@ export function pricesFromGross(grossPrice: number, vatRate: number) {
 }
 
 /** After changing VAT: keep net, recompute gross. */
-export function pricesFromVatChange(netPrice: number, vatRate: number) {
+export function pricesFromVatChange(netPrice: number, vatRate: VatRate) {
   return {
     netPrice,
     grossPrice: calculateGrossPrice(netPrice, vatRate),

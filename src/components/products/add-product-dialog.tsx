@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 
 import { AddProductStepInfo } from "@/components/products/add-product-step-info";
+import { AddProductStepPrice } from "@/components/products/add-product-step-price";
 import { AddProductStepper } from "@/components/products/add-product-stepper";
 import { useProductForm } from "@/components/products/use-product-form";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ import {
 import {
   PRODUCT_FORM_STEP_COUNT,
   productStep1Schema,
+  productStep2Schema,
   type ProductFormStepId,
 } from "@/lib/product";
 
@@ -34,6 +36,13 @@ const STEP1_FIELDS = [
   "category",
   "features",
 ] as const satisfies ReadonlyArray<keyof typeof productStep1Schema.shape>;
+
+const STEP2_FIELDS = [
+  "netPrice",
+  "grossPrice",
+  "vatRate",
+  "currency",
+] as const satisfies ReadonlyArray<keyof typeof productStep2Schema.shape>;
 
 export function AddProductDialog({
   open,
@@ -61,17 +70,31 @@ export function AddProductDialog({
     );
   }
 
+  async function validateStepFields(
+    fieldNames: ReadonlyArray<
+      (typeof STEP1_FIELDS)[number] | (typeof STEP2_FIELDS)[number]
+    >,
+  ) {
+    await Promise.all(
+      fieldNames.map((fieldName) => form.validateField(fieldName, "submit")),
+    );
+
+    return fieldNames.some((fieldName) => {
+      const fieldMeta = form.getFieldMeta(fieldName);
+      return Boolean(fieldMeta?.errors.length);
+    });
+  }
+
   async function handleNext() {
     if (step === 1) {
-      await Promise.all(
-        STEP1_FIELDS.map((fieldName) => form.validateField(fieldName, "submit")),
-      );
+      const hasStepErrors = await validateStepFields(STEP1_FIELDS);
+      if (hasStepErrors) {
+        return;
+      }
+    }
 
-      const hasStepErrors = STEP1_FIELDS.some((fieldName) => {
-        const fieldMeta = form.getFieldMeta(fieldName);
-        return Boolean(fieldMeta?.errors.length);
-      });
-
+    if (step === 2) {
+      const hasStepErrors = await validateStepFields(STEP2_FIELDS);
       if (hasStepErrors) {
         return;
       }
@@ -111,6 +134,7 @@ export function AddProductDialog({
 
           <div className="mt-8 min-h-40">
             {step === 1 ? <AddProductStepInfo form={form} /> : null}
+            {step === 2 ? <AddProductStepPrice form={form} /> : null}
           </div>
         </div>
 

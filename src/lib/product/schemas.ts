@@ -16,11 +16,11 @@ const skuSchema = z
   .max(24, "SKU może mieć maksymalnie 24 znaki")
   .regex(/^[a-zA-Z0-9]+$/, "SKU może zawierać tylko litery i cyfry");
 
-const vatRateSchema = z
-  .number({ error: "Wybierz stawkę VAT" })
-  .refine((value): value is VatRate => (VAT_RATES as readonly number[]).includes(value), {
-    error: "Wybierz stawkę VAT",
-  });
+const [vat0, vat5, vat8, vat23] = VAT_RATES;
+const vatRateSchema = z.union(
+  [z.literal(vat0), z.literal(vat5), z.literal(vat8), z.literal(vat23)],
+  { error: "Wybierz stawkę VAT" },
+) satisfies z.ZodType<VatRate>;
 
 export const productStep1Schema = z.object({
   name: z.string().trim().min(3, "Nazwa musi mieć co najmniej 3 znaki"),
